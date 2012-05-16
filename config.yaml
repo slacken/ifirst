@@ -1,0 +1,8 @@
+name: ifirst
+version: 1
+handle:
+
+- rewrite: if ( !is_dir() && !is_file() && path ~ "/server/(.*)$" ) goto "/server/index.php/$1"
+- rewrite: if( path ~ "^/$" ) goto "/client/"
+- rewrite: if( !is_file() && !is_dir()  && path ~ "/(.*)" ) goto "/client/$1"
+

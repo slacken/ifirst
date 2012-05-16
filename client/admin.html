@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>这是首页</title>
+      <meta charset="utf-8">
+      <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="format-detection" content="telephone=no" />
+    </head>
+    <body>
+      <section id="classes" class="hide">
+          <header class="header">
+          	<div>
+          		<h1>班级列表</h1>
+          		<a href="javascript:site.go();" class="redirect"><span class="left btn">刷新</span></a>
+          		<a href="javascript:site.logout();"><span class="btn right">退出</span></a>
+          	</div>
+          </header>
+          <div class="content"></div>
+          <script id="classes-tmpl" type="text/html">
+          <ul class="line">
+			{{#classes}}
+          	<li class="line-row"><span class="right"><a href="#">修改</a></span>{{name}}</li>
+			{{/classes}}
+          </ul>
+		  </script>
+          <div class="line line-btn center"><a href="#edit-class" class="redirect">添加班级</a></div>
+          <footer class="footer"><div class="center">我是管理员</div></footer>
+      </section>
+      <section id="edit-class" class="hide">
+      		<header class="header"><div>
+      			<a href="#classes" class="redirect"><span class="btn left">取消</span></a>
+      			<h1>添加班级</h1>
+      			<a href="javascript:commit();"><span class="btn right">确定</span></a>
+      		</div></header>
+          <form>
+          <div class="line"><input type="text" name="name" placeholder="班级名称" /></div>
+          <div class="line"><input type="text" name="teachers" placeholder="老师ID，用逗号隔开" /></div>
+          <div class="line"><textarea name="courses" placeholder="科目列表：每一科的格式为科目名称(学分)"></textarea></div>
+          </form>
+          <footer class="footer"><div class="center">我是管理员</div></footer>
+      </section>
+      <script src="js/zepto.js"></script>
+      <script src="js/event.js"></script>
+      <script src="js/touch.js"></script>
+      <script src="js/ICanHaz.min.js"></script>
+      <script src="js/ajax.js"></script>
+      <script src="js/form.js"></script>
+      <script src="js/script.js"></script>
+      <script>
+      	$(document).ready(function(){
+      		site.init('#classes');
+      		site.get_render('api/class/list');
+      		$("a.redirect").live(activate,function(){
+      			site.redirect($(this).attr("href"));
+      			return false;
+      		});
+      	});
+      	function commit(){
+      		var data = $("#edit-class form").serialize();
+      		console.log(data);
+  			site.post('api/class/add',data);
+  			site.redirect("#classes");
+      	}
+      </script>
+    </body>
+</html>

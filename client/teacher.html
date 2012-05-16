@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>我是老师</title>
+      <meta charset="utf-8">
+      <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="format-detection" content="telephone=no" />
+    </head>
+    <body>
+      <section id="stu-list" class="hide">
+          <header class="header">
+          	<div>
+          		<h1>学生列表</h1>
+          		<a href="javascript:site.go();" class="redirect"><span class="left btn">刷新</span></a>
+          		<a href="javascript:site.logout();"><span class="btn right">退出</span></a>
+          	</div>
+          </header>
+          <div class="content"></div>
+          <script id="stu-list-tmpl" type="text/html">
+          <ul class="line apply-list">
+			<li class="line-row"><strong>申请列表：</strong></li>
+			{{#apply}}
+          	<li class="line-row"><span class="right"><a href="api/class/permit" data-id="{{id}}">批准</a>&nbsp;<a href="api/class/reject" data-id="{{id}}">忽略</a></span>{{name}}({{email}}) 申请加入</li>
+            {{/apply}}
+          </ul>
+          <!--<div class="line"><input type="text" name="search" /></div>-->
+          <ul class="line member-list">
+			<li class="line-row"><strong>学生列表：</strong></li>
+			{{#member}}
+          	<li class="line-row"><span class="right"><a href="#edit-info" data-id="{{id}}">修改</a></span>{{name}} ({{email}})（<strong>{{gpa}}</strong>）</li>
+			{{/member}}
+          </ul>
+          </script>
+          <footer class="footer"><div class="center">我是老师</div></footer>
+      </section>
+      
+      
+      <section id="edit-info" class="hide">
+      	<form>
+          <header class="header">
+          	<div>
+          		<a href="#stu-list" class="cancle"><span class="btn left">取消</span></a>
+          		<h1>修改成绩</h1>
+          		<a href="#stu-list" class="submit" ><span class="btn right">确定</span></a>
+          	</div>
+          </header>
+          <div class="content"></div>
+	        <script id="edit-info-tmpl" type="text/html">
+			<section class="line">
+			<form>
+          	<p class="line-row">修改<strong>{{name}}（{{email}}）</strong>的成绩</p>
+          	</section>
+          	<section>
+			<ul class="line">
+			{{#scores}}
+          	<li class="line-row"><span class="right"><input value="{{mark}}" name="scores[]" /></span>{{name}}</li>
+			{{/scores}}
+			</ul>
+			<input type="hidden" name="id" value="{{id}}" />
+			</form>
+			</section>
+			</script>
+          <footer class="footer"><div class="center">我是老师</div></footer>
+      </section>
+      <script src="js/zepto.js"></script>
+      <script src="js/event.js"></script>
+      <script src="js/touch.js"></script>
+      <script src="js/ICanHaz.min.js"></script>
+      <script src="js/ajax.js"></script>
+      <script src="js/form.js"></script>
+      <script src="js/script.js"></script>
+      <script>
+      	$(document).ready(function(){
+      		site.init('#stu-list');
+      		site.get_render('api/teacher/info');
+      		$(".apply-list a").live(activate,function(){
+      			var url = $(this).attr('href');
+				var result = site.get(url,{'id':$(this).attr('data-id')});
+				if(result !== false)$(this).parents(".line-row").addClass('hide');
+				return false;
+      		});
+      		$(".member-list a").live(activate,function(){
+      			site.redirect("#edit-info");
+      			site.get_render('api/score/get',{'id':$(this).attr('data-id')});
+      			return false;
+      		});
+      		$(".header .cancle").live(activate, function(event){
+      			site.redirect($(this).attr("href"));
+      			return false;
+      		});
+      		$("#edit-info .submit").live(activate, function(event){
+      			//提交数据
+      			var data = $("#edit-info form").serialize();
+      			site.post('api/score/modify',data);
+      			site.redirect($(this).attr("href"));
+      			return false;
+      		});
+      	});
+      </script>
+    </body>
+</html>

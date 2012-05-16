@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>终极一班</title>
+      <meta charset="utf-8">
+      <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="format-detection" content="telephone=no" />
+      
+      
+      	
+      
+    </head>
+    <body>
+      <section id="timeline" class="hide">
+          <header class="header">
+          	<div>
+          		<h1>终极一班</h1>
+          		<a href="javascript:site.go();" class="redirect"><span class="left btn">刷新</span></a>
+          		<a href="javascript:site.logout();"><span class="btn right">退出</span></a>
+          	</div>
+          </header>
+          <section id="buzz-list">
+          	<div class="content"></div>
+          	<script id="timeline-tmpl" type="text/html">
+			{{#buzz}}
+              <article>
+                  <img src="img/avatar.jpg" width="32" />
+                  <p><strong>{{name}}</strong>：{{content}}</p>
+                  <div class="clear"></div>
+              </article>
+			{{/buzz}}
+			</script>
+            <!--  <div class="loading">加载中...</div> -->
+          </section>
+          <footer class="footer">
+          	<div class="toolbar">
+            	<span class="left on">时间线</span>
+                <a href="#add-buzz" class="redirect"><span class="left">发布消息</span></a>
+                <a href="#info" class="redirect"><span class="right">我的信息</span></a>
+            </div>
+          </footer>
+      </section>
+      
+      
+      
+      <section id="add-buzz" class="hide">
+      	<form>
+          <header class="header">
+          	<div>
+            <a href="#timeline" class="redirect"><span class="btn left">取消</span></a>
+            <h1>发布消息</h1>
+            <a id="publish-buzz" href="javascript:;"><span class="btn right">确定</span></a>
+            </div>
+          </header>
+          <section class="line">
+          <textarea placeholder="你现在想说什么呢？" id="buzz-content" class="content"></textarea>
+          </section>
+          <footer class="footer">
+          	<div class="toolbar">
+            	<a href="#timeline" class="redirect"><span class="left">时间线</span></a>
+                <span class="left on">发布消息</span>
+                <a href="#info" class="redirect"><span class="right">我的信息</span></a>
+            </div>
+          </footer>
+        </form>
+      </section>
+      
+      
+      
+      <section id="info" class="hide">
+          <header class="header">
+          	<div><h1>我的信息</h1></div>
+          </header>
+          <div class="content"></div>
+          <script id="info-tmpl" type="text/html">
+          <section class="line">
+            <p class="line-row"><span class="right">{{credit}}</span>平均绩点</p>
+            <p class="line-row"><span class="right">{{rank}}</span>班级排名</p>
+          </section>
+          <section>
+          <ul class="line">
+			{{#scores}}
+          	<li class="line-row"><span class="right">{{mark}}</span>{{name}}</li>
+			{{/scores}}
+          </ul>
+          </section>
+          <section class="line">
+          	<p class="line-row"><span class="right">{{name}}</span>用户名</p>
+            <p class="line-row"><span class="right">{{email}}</span>登陆邮箱</p>
+          </section>
+		 </script>
+          <footer class="footer">
+          	<div class="toolbar">
+            	<a href="#timeline" class="redirect"><span class="left">时间线</span></a>
+                <a href="#add-buzz" class="redirect"><span class="left">发布消息</span></a>
+                <a href="#info" class="redirect"><span class="right on">我的信息</span></a>
+            </div>
+          </footer>
+      </section>
+      <script src="js/zepto.js"></script>
+      <script src="js/event.js"></script>
+      <script src="js/ICanHaz.min.js"></script>
+      <script src="js/ajax.js"></script>
+      <script src="js/touch.js"></script>
+      <script src="js/script.js"></script>
+      <script>
+      $(document).ready(function(){
+    	  site.init('#timeline');
+    	  site.get_render('api/buzz/list');
+    	  $("#publish-buzz").live(activate,function(){
+    		  var content = $("#buzz-content").val();
+    		  if(content){
+    			  var result = site.post('api/buzz/add',{'content':content});
+    			  if(result!==false){
+    				  site.redirect('#timeline');
+    			  }else{
+    				 alert('fuck');
+    			  }
+    		  }
+    	  });
+    	  $("a.redirect").live(activate, function(event){
+    			site.redirect($(this).attr("href"));
+    			var target = $(this).attr('href');
+    			switch(target){
+	    			case '#info':{
+	    				site.get_render('api/user/info');
+	    			}break;
+	    			case '#timeline':{
+	    				site.get_render('api/buzz/list');
+	    			}break;
+    			}
+    			return false;
+    	  });
+    	  
+    	  
+      });
+      
+      </script>
+    </body>
+</html>
