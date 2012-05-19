@@ -11,7 +11,7 @@ class Authorize extends CI_Controller {
 	}
 	
 	/**
-	 * 更新token并返回
+	 * 用户登录，更新token并返回
 	 * */
 	public function login(){
 		$name = $this->input->post('name');
@@ -32,6 +32,9 @@ class Authorize extends CI_Controller {
 		}
 	}
 	
+	/**
+	 * 用户注册
+	 * */
 	public function register(){
 		
 		$name = $this->input->post('name');
@@ -54,7 +57,9 @@ class Authorize extends CI_Controller {
 		}
 	}
 	
-	
+	/**
+	 * 输出数据
+	 * */
 	public function __destruct(){
 		$this->data['succeed'] = $this->succeed;
 		if(!$this->succeed){

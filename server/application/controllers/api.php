@@ -7,13 +7,19 @@ class Api extends CI_Controller {
 	public $succeed;
 	
 	public $data;//返回的数据
+	/**
+	* 当前时间
+	*/
 	
-	public $time;//当前时间
+	public $time;
 	/**
 	 * 当前用户实例
 	 * */
 	public $user;
 	
+	/**
+	* 错误类型
+	*/
 	public $error_type = array(
 		'no_token'=>1,
 		'invalid_token'=>2,
@@ -40,8 +46,88 @@ class Api extends CI_Controller {
 	);
 	
 	/**
+	 * API总控制器
+	 * */
+	public function _remap($name,$param = array()){
+		
+		$this->time = time();
+		$this->data = array();
+		$this->succeed = TRUE;
+		$this->user = array();
+		
+		if(!$this->input->get('token')){
+			$this->succeed = FALSE;
+			$this->data['error'] = $this->error_type['no_token'];
+			$this->data['error_info'] = "未提供存取标识";
+		}else{
+			$token = clean_string($this->input->get('token'));
+			$access = $this->db->where('value',$token)->get('token')->row_array();
+			
+			//var_dump($access);
+			
+			if(empty($access)){
+				$this->succeed = FALSE;
+				$this->data['error'] = $this->error_type['invalid_token'];
+				$this->data['error_info'] = "不合法的存取标识";
+			}elseif ($this->time - $access['stamp'] > $this->config->item('token_expire')){
+				$this->succeed = FALSE;
+				$this->data['error'] = $this->error_type['token_expires'];
+				$this->data['error_info'] = "存取标识过期了";
+			}elseif($access['count'] > $this->config->item('token_limit')){
+				
+				$this->succeed = FALSE;
+				$this->data['error'] = $this->error_type['out_limit'];
+				$this->data['error_info'] = "存取过于频繁";
+				
+				//然后做出一些处理（待添加）
+				
+			}else{
+
+				if(empty($param))$param[0] = 'index';
+				
+				$action = $param[0];
+				
+				//是否提供此API
+				if(!key_exists($name, $this->actions) || !isset($this->actions[$name][$action])){
+					
+					$this->succeed = FALSE;
+					$this->data['error'] = $this->error_type['no_action'];
+					$this->data['error_info'] = "不存在此API";
+				}else{
+					
+					//查询用户
+					$this->user = $this->db->where('id',$access['user_id'])->get('user')->row_array();
+					//var_dump($this->user);
+					assert(!empty($this->user));//应该不为空的
+					
+					$this->load->model('user','userModel');
+					
+					$type_name = array_flip($this->userModel->type);
+					
+					if(($type_name[$this->user['type']] === $this->actions[$name][$action]) || (is_array($this->actions[$name][$action]) && in_array($type_name[$this->user['type']], $this->actions[$name][$action]))){
+						
+						if($name == 'class')$name = 'clas';
+						//here we go...
+						$this->$name($action,array_shift($param));
+						
+					}else{
+						$this->succeed = FALSE;
+						$this->data['error'] = $this->error_type['unpermissed'];
+						$this->data['error_info'] = "无权访问此API";
+					}
+				}
+			}
+		}
+		$this->data['succeed'] = $this->succeed;
+		
+		echo json_encode($this->data);//json_encode
+		//var_dump($this->data);
+	}
+	
+	/**
 	 * 测试API
 	 * */
+	/*
 	public function test($action,$param=array()){
 		
 		$this->user['type'] = 5;
@@ -50,6 +136,11 @@ class Api extends CI_Controller {
 		$this->teacher('info');
 		$this->output->enable_profiler(TRUE);
 	}
+	*/
+	
+	/**
+	* 专门定义老师部分API
+	*/
 	public function teacher($action,$param=array()){
 		switch ($action){
 			case 'info':{//老师用来获取概要班级信息
@@ -73,6 +164,7 @@ class Api extends CI_Controller {
 			}break;
 		}
 	}
+	
 	/**
 	 * 用户相关信息
 	 * */
@@ -102,6 +194,7 @@ class Api extends CI_Controller {
 			}
 		}
 	}
+	
 	/**
 	 * 分数相关信息
 	 * */
@@ -169,6 +262,7 @@ class Api extends CI_Controller {
 			}break;
 		}
 	}
+	
 	/**
 	 * 班级相关信息
 	 * */
@@ -308,6 +402,9 @@ class Api extends CI_Controller {
 		}
 	}
 	
+	/**
+	* 状态相关信息
+	*/
 	public function buzz($action,$param=array()){
 		switch ($action){
 			case 'add':{
@@ -350,83 +447,5 @@ class Api extends CI_Controller {
 		}
 	}
 	
-	/**
-	 * API控制器
-	 * */
-	public function _remap($name,$param = array()){
-		
-		
-		$this->time = time();
-		$this->data = array();
-		$this->succeed = TRUE;
-		$this->user = array();
-		
-		if(!$this->input->get('token')){
-			$this->succeed = FALSE;
-			$this->data['error'] = $this->error_type['no_token'];
-			$this->data['error_info'] = "未提供存取标识";
-		}else{
-			$token = clean_string($this->input->get('token'));
-			$access = $this->db->where('value',$token)->get('token')->row_array();
-			
-			//var_dump($access);
-			
-			if(empty($access)){
-				$this->succeed = FALSE;
-				$this->data['error'] = $this->error_type['invalid_token'];
-				$this->data['error_info'] = "不合法的存取标识";
-			}elseif ($this->time - $access['stamp'] > $this->config->item('token_expire')){
-				$this->succeed = FALSE;
-				$this->data['error'] = $this->error_type['token_expires'];
-				$this->data['error_info'] = "存取标识过期了";
-			}elseif($access['count'] > $this->config->item('token_limit')){
-				
-				$this->succeed = FALSE;
-				$this->data['error'] = $this->error_type['out_limit'];
-				$this->data['error_info'] = "存取过于频繁";
-				
-				//然后做出一些处理
-				
-			}else{
-
-				if(empty($param))$param[0] = 'index';
-				
-				$action = $param[0];
-				
-				//是否提供此API
-				if(!key_exists($name, $this->actions) || !isset($this->actions[$name][$action])){
-					
-					$this->succeed = FALSE;
-					$this->data['error'] = $this->error_type['no_action'];
-					$this->data['error_info'] = "不存在此API";
-				}else{
-					
-					//查询用户
-					$this->user = $this->db->where('id',$access['user_id'])->get('user')->row_array();
-					//var_dump($this->user);
-					assert(!empty($this->user));//应该不为空的
-					
-					$this->load->model('user','userModel');
-					
-					$type_name = array_flip($this->userModel->type);
-					
-					if(($type_name[$this->user['type']] === $this->actions[$name][$action]) || (is_array($this->actions[$name][$action]) && in_array($type_name[$this->user['type']], $this->actions[$name][$action]))){
-						
-						if($name == 'class')$name = 'clas';
-						//here we go...
-						$this->$name($action,array_shift($param));
-						
-					}else{
-						$this->succeed = FALSE;
-						$this->data['error'] = $this->error_type['unpermissed'];
-						$this->data['error_info'] = "无权访问此API";
-					}
-				}
-			}
-		}
-		$this->data['succeed'] = $this->succeed;
-		
-		echo json_encode($this->data);//json_encode
-		//var_dump($this->data);
-	}
+	
 }
