@@ -1,17 +1,24 @@
 <?php if ( !defined('BASEPATH')) exit('No direct script access allowed');
 
+/**
+ * API接口，暂没有添加缓存功能
+*/
 class Api extends CI_Controller {
 	/**
 	 * 是否成功
 	 * */
 	public $succeed;
 	
-	public $data;//返回的数据
+	/**
+	 * 返回的数据
+	 * */
+	public $data;
+	
 	/**
 	* 当前时间
 	*/
-	
 	public $time;
+	
 	/**
 	 * 当前用户实例
 	 * */
